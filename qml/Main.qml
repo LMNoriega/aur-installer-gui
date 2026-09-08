@@ -30,17 +30,20 @@ Window {
         text: "0"
     }
 
-    // Contenedor principal redondeado y con bordes estilo Serpantinum
+    // Contenedor principal con efecto de vidrio esmerilado / liquid glass (translúcido + blur)
     Rectangle {
         id: bgContainer
         anchors.fill: parent
         radius: 14
-        color: theme.base
-        border.color: Qt.alpha(currentAccent, 0.45)
+        color: Qt.alpha(theme.base, 0.76)
+        border.color: Qt.alpha(currentAccent, 0.55)
         border.width: 1.5
         clip: true
 
         Behavior on border.color {
+            ColorAnimation { duration: 250 }
+        }
+        Behavior on color {
             ColorAnimation { duration: 250 }
         }
 
@@ -60,8 +63,8 @@ Window {
                     Layout.preferredWidth: 230
                     Layout.preferredHeight: 36
                     radius: 10
-                    color: theme.surface0
-                    border.color: theme.surface2
+                    color: Qt.alpha(theme.surface0, 0.65)
+                    border.color: Qt.alpha(theme.surface2, 0.70)
                     border.width: 1
 
                     // Fondo deslizante animado del tab activo
@@ -72,7 +75,7 @@ Window {
                         y: 3
                         x: root.isUninstallMode ? (parent.width / 2) : 3
                         radius: 8
-                        color: root.isUninstallMode ? theme.red : theme.mauve
+                        color: Qt.alpha(root.isUninstallMode ? theme.red : theme.mauve, 0.90)
 
                         Behavior on x {
                             NumberAnimation { duration: 220; easing.type: Easing.OutBack; easing.overshoot: 1.15 }
@@ -164,15 +167,15 @@ Window {
                 }
             }
 
-            // ================= SEARCH BAR (ESTILO INPUT.QML) =================
+            // ================= SEARCH BAR (FROSTED GLASS) =================
             Rectangle {
                 id: searchBarContainer
                 Layout.fillWidth: true
                 Layout.preferredHeight: 42
                 radius: 10
-                color: theme.surface0
+                color: Qt.alpha(theme.surface0, 0.65)
                 border.width: 1.5
-                border.color: innerInput.activeFocus ? root.currentAccent : theme.surface1
+                border.color: innerInput.activeFocus ? root.currentAccent : Qt.alpha(theme.surface1, 0.70)
 
                 property real focusPop: 1.0
                 scale: focusPop
@@ -320,7 +323,7 @@ Window {
                             }
                         }
 
-                        // TextInput subyacente para entrada de teclado que MANTIENE EL FOCO SIEMPRE
+                        // TextInput subyacente que mantiene siempre el foco
                         TextInput {
                             id: innerInput
                             anchors.fill: parent
@@ -337,7 +340,6 @@ Window {
                                 backend.search(text, root.isUninstallMode);
                             }
 
-                            // Navegación con flechitas SIN perder el foco de escritura
                             Keys.onDownPressed: function(event) {
                                 if (pkgList.count > 0) {
                                     if (pkgList.currentIndex < pkgList.count - 1) {
@@ -400,7 +402,7 @@ Window {
                         Rectangle {
                             anchors.fill: parent
                             radius: 6
-                            color: clearMa.containsMouse ? theme.surface1 : "transparent"
+                            color: clearMa.containsMouse ? Qt.alpha(theme.surface1, 0.70) : "transparent"
                         }
                         Text {
                             anchors.centerIn: parent
@@ -438,7 +440,6 @@ Window {
                     elide: Text.ElideRight
                 }
 
-                // Badge de modo seguro reubicado en la barra de estado (discreto y sin colisiones)
                 Rectangle {
                     Layout.preferredHeight: 20
                     Layout.preferredWidth: secBadgeText.implicitWidth + 12
@@ -494,7 +495,7 @@ Window {
                         width: pkgList.width
                         height: 48
                         radius: 10
-                        color: root.currentAccent
+                        color: Qt.alpha(root.currentAccent, 0.90)
 
                         opacity: (pkgList.currentIndex >= 0 && pkgList.currentItem) ? 1.0 : 0.0
                         Behavior on opacity { NumberAnimation { duration: 150 } }
@@ -521,8 +522,8 @@ Window {
                         Rectangle {
                             anchors.fill: parent
                             radius: 10
-                            color: theme.surface0
-                            opacity: delegateMa.containsMouse && !delegateRoot.isSelected ? 0.45 : 0
+                            color: Qt.alpha(theme.surface0, 0.50)
+                            opacity: delegateMa.containsMouse && !delegateRoot.isSelected ? 0.60 : 0
                             Behavior on opacity { NumberAnimation { duration: 120 } }
                         }
 
@@ -576,8 +577,8 @@ Window {
                                 radius: 6
                                 color: {
                                     if (delegateRoot.isSelected) return Qt.alpha(theme.crust, 0.25);
-                                    if (root.isUninstallMode) return Qt.alpha(theme.red, 0.2);
-                                    return modelData.is_aur ? Qt.alpha(theme.mauve, 0.25) : Qt.alpha(theme.surface2, 0.8);
+                                    if (root.isUninstallMode) return Qt.alpha(theme.red, 0.20);
+                                    return modelData.is_aur ? Qt.alpha(theme.mauve, 0.25) : Qt.alpha(theme.surface2, 0.80);
                                 }
                                 border.color: {
                                     if (delegateRoot.isSelected) return Qt.alpha(theme.crust, 0.4);
