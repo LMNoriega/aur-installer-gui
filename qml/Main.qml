@@ -52,12 +52,12 @@ Window {
             // ================= HEADER & TABS =================
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 12
+                spacing: 14
 
                 // Selector de modo con píldora animada (Instalar vs Desinstalar)
                 Rectangle {
                     id: modeToggle
-                    Layout.preferredWidth: 260
+                    Layout.preferredWidth: 230
                     Layout.preferredHeight: 36
                     radius: 10
                     color: theme.surface0
@@ -135,7 +135,7 @@ Window {
                     }
                 }
 
-                // Subtítulo informativo
+                // Subtítulo informativo con espacio holgado
                 Column {
                     Layout.fillWidth: true
                     spacing: 2
@@ -155,31 +155,11 @@ Window {
                     }
                 }
 
-                // Indicador de seguridad
-                Rectangle {
-                    Layout.preferredHeight: 26
-                    Layout.preferredWidth: secText.implicitWidth + 16
-                    radius: 6
-                    color: Qt.alpha(theme.green, 0.15)
-                    border.color: Qt.alpha(theme.green, 0.4)
-                    border.width: 1
-
-                    Text {
-                        id: secText
-                        anchors.centerIn: parent
-                        text: "🛡️ Modo Seguro (NOPASSWD)"
-                        font.family: "JetBrains Mono"
-                        font.pixelSize: 10
-                        font.bold: true
-                        color: theme.green
-                    }
-                }
-
-                // Indicador de atajos
+                // Indicador de atajos en la esquina derecha
                 Text {
                     text: "[Tab] Modo • [Esc] Salir"
                     font.family: "JetBrains Mono"
-                    font.pixelSize: 10
+                    font.pixelSize: 11
                     color: theme.subtext1
                 }
             }
@@ -340,7 +320,7 @@ Window {
                             }
                         }
 
-                        // TextInput subyacente para entrada de teclado
+                        // TextInput subyacente para entrada de teclado que MANTIENE EL FOCO SIEMPRE
                         TextInput {
                             id: innerInput
                             anchors.fill: parent
@@ -357,27 +337,43 @@ Window {
                                 backend.search(text, root.isUninstallMode);
                             }
 
+                            // Navegación con flechitas SIN perder el foco de escritura
                             Keys.onDownPressed: function(event) {
                                 if (pkgList.count > 0) {
-                                    pkgList.forceActiveFocus();
-                                    if (pkgList.currentIndex < 0) {
-                                        pkgList.currentIndex = 0;
-                                    } else if (pkgList.currentIndex < pkgList.count - 1) {
+                                    if (pkgList.currentIndex < pkgList.count - 1) {
                                         pkgList.currentIndex++;
+                                    } else {
+                                        pkgList.currentIndex = 0;
                                     }
+                                    pkgList.positionViewAtIndex(pkgList.currentIndex, ListView.Contain);
                                     backend.playSwitchSound();
                                 }
                                 event.accepted = true;
                             }
+
+                            Keys.onUpPressed: function(event) {
+                                if (pkgList.count > 0) {
+                                    if (pkgList.currentIndex > 0) {
+                                        pkgList.currentIndex--;
+                                    } else {
+                                        pkgList.currentIndex = pkgList.count - 1;
+                                    }
+                                    pkgList.positionViewAtIndex(pkgList.currentIndex, ListView.Contain);
+                                    backend.playSwitchSound();
+                                }
+                                event.accepted = true;
+                            }
+
                             Keys.onTabPressed: function(event) {
                                 root.isUninstallMode = !root.isUninstallMode;
                                 backend.playSwitchSound();
                                 backend.setMode(root.isUninstallMode ? "uninstall" : "install", innerInput.text);
                                 event.accepted = true;
                             }
+
                             Keys.onReturnPressed: function(event) {
-                                if (pkgList.count > 0) {
-                                    let item = backend.getItem(pkgList.currentIndex >= 0 ? pkgList.currentIndex : 0);
+                                if (pkgList.count > 0 && pkgList.currentIndex >= 0) {
+                                    let item = backend.getItem(pkgList.currentIndex);
                                     if (item && item.name) {
                                         backend.playClickSound();
                                         backend.executeAction(item.name, root.isUninstallMode);
@@ -388,6 +384,7 @@ Window {
                                 }
                                 event.accepted = true;
                             }
+
                             Keys.onEscapePressed: function(event) {
                                 root.close();
                                 event.accepted = true;
@@ -426,14 +423,40 @@ Window {
                 }
             }
 
-            // ================= STATUS & COUNT =================
-            Text {
-                id: statusLabel
+            // ================= STATUS & SECURITY BADGE =================
+            RowLayout {
                 Layout.fillWidth: true
-                text: backend.statusText
-                font.family: "JetBrains Mono"
-                font.pixelSize: 11
-                color: theme.subtext0
+                spacing: 8
+
+                Text {
+                    id: statusLabel
+                    Layout.fillWidth: true
+                    text: backend.statusText
+                    font.family: "JetBrains Mono"
+                    font.pixelSize: 11
+                    color: theme.subtext0
+                    elide: Text.ElideRight
+                }
+
+                // Badge de modo seguro reubicado en la barra de estado (discreto y sin colisiones)
+                Rectangle {
+                    Layout.preferredHeight: 20
+                    Layout.preferredWidth: secBadgeText.implicitWidth + 12
+                    radius: 5
+                    color: Qt.alpha(theme.green, 0.12)
+                    border.color: Qt.alpha(theme.green, 0.35)
+                    border.width: 1
+
+                    Text {
+                        id: secBadgeText
+                        anchors.centerIn: parent
+                        text: "🛡️ sudoers (NOPASSWD)"
+                        font.family: "JetBrains Mono"
+                        font.pixelSize: 10
+                        font.bold: true
+                        color: theme.green
+                    }
+                }
             }
 
             // ================= LIST OF PACKAGES (LAUNCHER.QML STYLE) =================
@@ -450,6 +473,17 @@ Window {
                     model: backend.results
                     currentIndex: 0
                     boundsBehavior: Flickable.StopAtBounds
+                    focus: false
+
+                    onModelChanged: {
+                        currentIndex = 0;
+                    }
+
+                    onCurrentIndexChanged: {
+                        if (currentIndex >= 0) {
+                            positionViewAtIndex(currentIndex, ListView.Contain);
+                        }
+                    }
 
                     // Morphing highlight de Serpantinum
                     Rectangle {
@@ -584,43 +618,9 @@ Window {
                         }
                     }
 
-                    // Navegación con teclado en la lista con el sonido de switch
-                    Keys.onUpPressed: function(event) {
-                        if (currentIndex > 0) {
-                            currentIndex--;
-                            backend.playSwitchSound();
-                        } else {
-                            searchInput.forceFocus();
-                            backend.playSwitchSound();
-                        }
-                        event.accepted = true;
-                    }
-                    Keys.onDownPressed: function(event) {
-                        if (currentIndex < count - 1) {
-                            currentIndex++;
-                            backend.playSwitchSound();
-                        }
-                        event.accepted = true;
-                    }
-                    Keys.onTabPressed: function(event) {
-                        root.isUninstallMode = !root.isUninstallMode;
-                        backend.playSwitchSound();
-                        backend.setMode(root.isUninstallMode ? "uninstall" : "install", searchInput.inputText);
-                        event.accepted = true;
-                    }
-                    Keys.onReturnPressed: function(event) {
-                        if (currentIndex >= 0 && currentIndex < count) {
-                            let item = backend.getItem(currentIndex);
-                            if (item && item.name) {
-                                backend.playClickSound();
-                                backend.executeAction(item.name, root.isUninstallMode);
-                            }
-                        }
-                        event.accepted = true;
-                    }
-                    Keys.onEscapePressed: function(event) {
-                        root.close();
-                        event.accepted = true;
+                    // En caso de que se haga foco en pkgList, redirigir inmediatamente a innerInput
+                    Keys.onPressed: function(event) {
+                        innerInput.forceActiveFocus();
                     }
                 }
             }
