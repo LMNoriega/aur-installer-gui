@@ -1,0 +1,2 @@
+# Regla segura para que el instalador de AUR pueda invocar pacman sin contraseña
+luki ALL=(ALL) NOPASSWD: /usr/bin/pacman

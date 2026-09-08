@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+# aur-installer-run: Ejecuta instalación o desinstalación con yay totalmente automatizada y segura
+
+ACTION="install"
+PKG=""
+
+if [ "$1" = "remove" ] || [ "$1" = "--remove" ] || [ "$1" = "-R" ]; then
+    ACTION="remove"
+    PKG="$2"
+elif [ "$1" = "install" ] || [ "$1" = "--install" ] || [ "$1" = "-S" ]; then
+    ACTION="install"
+    PKG="$2"
+else
+    PKG="$1"
+fi
+
+if [ -z "$PKG" ]; then
+    echo "Uso: aur-installer-run [install|remove] <paquete>"
+    exit 1
+fi
+
+BOLD="\033[1m"
+GREEN="\033[1;32m"
+RED="\033[1;31m"
+CYAN="\033[1;36m"
+PURPLE="\033[1;35m"
+RESET="\033[0m"
+
+clear
+if [ "$ACTION" = "remove" ]; then
+    echo -e "${RED}╭──────────────────────────────────────────────────────────╮${RESET}"
+    echo -e "${RED}│${RESET}              ${BOLD}DESINSTALADOR DE PAQUETES AUR${RESET}              ${RED}│${RESET}"
+    echo -e "${RED}╰──────────────────────────────────────────────────────────╯${RESET}"
+    echo ""
+    echo -e "  ${BOLD}Acción  :${RESET} ${RED}Desinstalar${RESET}"
+    echo -e "  ${BOLD}Paquete :${RESET} ${CYAN}${PKG}${RESET}"
+    echo -e "  ${BOLD}Comando :${RESET} ${CYAN}yay -Rns --noconfirm ${PKG}${RESET}"
+    echo ""
+    echo -e "${RED}────────────────────────────────────────────────────────────${RESET}"
+    echo ""
+
+    yay -Rns --noconfirm "$PKG"
+    EXIT_CODE=$?
+
+    echo ""
+    echo -e "${RED}────────────────────────────────────────────────────────────${RESET}"
+
+    if [ $EXIT_CODE -eq 0 ]; then
+        echo -e "${GREEN}${BOLD}✔ ¡Desinstalación finalizada con éxito!${RESET}"
+        pw-play /home/luki/.local/share/serpantinum/src/assets/sounds/notifications/Progress.wav 2>/dev/null &
+        notify-send -u normal -a "Instalador AUR" -i edit-delete \
+            "Desinstalación completada" "El paquete '$PKG' se desinstaló correctamente." 2>/dev/null || true
+        echo ""
+        echo -e "${CYAN}Cerrando ventana automáticamente en 2 segundos...${RESET}"
+        read -r -t 2 -p "" || true
+        exit 0
+    else
+        echo -e "${RED}${BOLD}✘ La desinstalación falló o fue cancelada (código: $EXIT_CODE).${RESET}"
+        notify-send -u critical -a "Instalador AUR" -i dialog-error \
+            "Desinstalación fallida" "No se pudo desinstalar el paquete '$PKG'." 2>/dev/null || true
+        echo ""
+        read -r -p "Presiona [Enter] para cerrar esta ventana..."
+        exit $EXIT_CODE
+    fi
+else
+    echo -e "${PURPLE}╭──────────────────────────────────────────────────────────╮${RESET}"
+    echo -e "${PURPLE}│${RESET}               ${BOLD}INSTALADOR DE PAQUETES AUR${RESET}                ${PURPLE}│${RESET}"
+    echo -e "${PURPLE}╰──────────────────────────────────────────────────────────╯${RESET}"
+    echo ""
+    echo -e "  ${BOLD}Acción  :${RESET} ${PURPLE}Instalar${RESET}"
+    echo -e "  ${BOLD}Paquete :${RESET} ${CYAN}${PKG}${RESET}"
+    echo -e "  ${BOLD}Comando :${RESET} ${CYAN}yay -S --noconfirm ... ${PKG}${RESET}"
+    echo ""
+    echo -e "${PURPLE}────────────────────────────────────────────────────────────${RESET}"
+    echo ""
+
+    yay -S --noconfirm \
+        --answerclean None \
+        --answerdiff None \
+        --answeredit None \
+        --answerupgrade None \
+        "$PKG"
+    EXIT_CODE=$?
+
+    echo ""
+    echo -e "${PURPLE}────────────────────────────────────────────────────────────${RESET}"
+
+    if [ $EXIT_CODE -eq 0 ]; then
+        echo -e "${GREEN}${BOLD}✔ ¡Instalación finalizada con éxito!${RESET}"
+        pw-play /home/luki/.local/share/serpantinum/src/assets/sounds/notifications/Progress.wav 2>/dev/null &
+        notify-send -u normal -a "Instalador AUR" -i software-update-available \
+            "Instalación completada" "El paquete '$PKG' se instaló correctamente." 2>/dev/null || true
+        echo ""
+        echo -e "${CYAN}Cerrando ventana automáticamente en 2 segundos...${RESET}"
+        read -r -t 2 -p "" || true
+        exit 0
+    else
+        echo -e "${RED}${BOLD}✘ La instalación falló o fue cancelada (código: $EXIT_CODE).${RESET}"
+        notify-send -u critical -a "Instalador AUR" -i dialog-error \
+            "Instalación fallida" "No se pudo instalar el paquete '$PKG'." 2>/dev/null || true
+        echo ""
+        read -r -p "Presiona [Enter] para cerrar esta ventana..."
+        exit $EXIT_CODE
+    fi
+fi
