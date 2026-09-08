@@ -1,2 +1,2 @@
-# Regla segura para que el instalador de AUR pueda invocar pacman sin contraseña
-luki ALL=(ALL) NOPASSWD: /usr/bin/pacman
+# Regla segura para que miembros del grupo wheel ejecuten pacman sin contraseña (estándar en Arch Linux)
+%wheel ALL=(ALL) NOPASSWD: /usr/bin/pacman

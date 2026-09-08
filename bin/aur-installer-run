@@ -47,7 +47,7 @@ if [ "$ACTION" = "remove" ]; then
 
     if [ $EXIT_CODE -eq 0 ]; then
         echo -e "${GREEN}${BOLD}✔ ¡Desinstalación finalizada con éxito!${RESET}"
-        pw-play /home/luki/.local/share/serpantinum/src/assets/sounds/notifications/Progress.wav 2>/dev/null &
+        pw-play "$HOME/.local/share/serpantinum/src/assets/sounds/notifications/Progress.wav" 2>/dev/null &
         notify-send -u normal -a "Instalador AUR" -i edit-delete \
             "Desinstalación completada" "El paquete '$PKG' se desinstaló correctamente." 2>/dev/null || true
         echo ""
@@ -87,7 +87,7 @@ else
 
     if [ $EXIT_CODE -eq 0 ]; then
         echo -e "${GREEN}${BOLD}✔ ¡Instalación finalizada con éxito!${RESET}"
-        pw-play /home/luki/.local/share/serpantinum/src/assets/sounds/notifications/Progress.wav 2>/dev/null &
+        pw-play "$HOME/.local/share/serpantinum/src/assets/sounds/notifications/Progress.wav" 2>/dev/null &
         notify-send -u normal -a "Instalador AUR" -i software-update-available \
             "Instalación completada" "El paquete '$PKG' se instaló correctamente." 2>/dev/null || true
         echo ""

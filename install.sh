@@ -27,7 +27,12 @@ echo "✔ Archivos instalados en ~/.local/bin y ~/.local/share"
 if [ ! -f /etc/sudoers.d/10-aur-installer ]; then
     read -rp "¿Deseas configurar la regla segura de sudoers (NOPASSWD para pacman) para instalaciones 100% automáticas? [s/N]: " resp
     if [[ "$resp" =~ ^[sS]$ ]]; then
-        sudo cp "$DIR/sudoers/10-aur-installer" /etc/sudoers.d/10-aur-installer
+        TARGET_USER="${SUDO_USER:-$USER}"
+        if groups "$TARGET_USER" 2>/dev/null | grep -q '\bwheel\b'; then
+            sudo cp "$DIR/sudoers/10-aur-installer" /etc/sudoers.d/10-aur-installer
+        else
+            echo "$TARGET_USER ALL=(ALL) NOPASSWD: /usr/bin/pacman" | sudo tee /etc/sudoers.d/10-aur-installer > /dev/null
+        fi
         sudo chmod 0440 /etc/sudoers.d/10-aur-installer
         echo "✔ Regla sudoers instalada con éxito."
     fi
