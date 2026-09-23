@@ -66,17 +66,79 @@ if [ "$ACTION" = "auto" ] && [ -f "$HOME/.local/bin/aur-search-gui" ]; then
     esac
 fi
 
+get_file_version() {
+    local f="$1"
+    if [ -f "$f" ]; then
+        head -n 5 "$f" | grep -iE '^(version|VERSION)[[:space:]]*=' | head -n 1 | sed -E 's/^[vV][eE][rR][sS][iI][oO][nN][[:space:]]*=[[:space:]]*["'"'"']?([^"'"'"' ]+)["'"'"']?.*/\1/'
+    fi
+}
+
 # Modo actualización rápida
 if [ "$ACTION" = "update" ]; then
     echo -e "${PURPLE}╭──────────────────────────────────────────────────────────╮${RESET}"
     echo -e "${PURPLE}│${RESET}         ${BOLD}ACTUALIZADOR DE AUR-INSTALLER-GUI${RESET}                ${PURPLE}│${RESET}"
     echo -e "${PURPLE}╰──────────────────────────────────────────────────────────╯${RESET}"
     echo ""
-    echo -e "${BLUE}==> Actualizando AUR Installer GUI...${RESET}"
+    echo -e "${BLUE}==> Comprobando versiones y actualizaciones...${RESET}"
 
-    # 1. Sincronización con Git si aplica
+    # 1. Obtener versión local
+    LOCAL_VER=$(get_file_version "$HOME/.local/share/aur-gui/CHANGELOG.md")
+    if [ -z "$LOCAL_VER" ]; then
+        LOCAL_VER=$(get_file_version "$DIR/CHANGELOG.md")
+    fi
+    LOCAL_VER="${LOCAL_VER:-1.0.0}"
+
+    # 2. Obtener versión remota desde GitHub
+    REMOTE_VER=""
+    REMOTE_URL=$(git -C "$DIR" remote get-url origin 2>/dev/null || echo "https://github.com/LMNoriega/aur-installer-gui.git")
+    REPO_PATH=$(echo "$REMOTE_URL" | sed -E 's#(.*github\.com[/:]|\.git$)##g')
+    RAW_URL="https://raw.githubusercontent.com/${REPO_PATH}/main/CHANGELOG.md"
+
+    if command -v curl >/dev/null 2>&1; then
+        REMOTE_CONTENT=$(curl -sSL --connect-timeout 4 "$RAW_URL" 2>/dev/null || true)
+    elif command -v wget >/dev/null 2>&1; then
+        REMOTE_CONTENT=$(wget -qO- --timeout=4 "$RAW_URL" 2>/dev/null || true)
+    fi
+
+    if [ -n "$REMOTE_CONTENT" ]; then
+        REMOTE_VER=$(echo "$REMOTE_CONTENT" | head -n 5 | grep -iE '^(version|VERSION)[[:space:]]*=' | head -n 1 | sed -E 's/^[vV][eE][rR][sS][iI][oO][nN][[:space:]]*=[[:space:]]*["'"'"']?([^"'"'"' ]+)["'"'"']?.*/\1/')
+    fi
+
+    if [ -z "$REMOTE_VER" ] && [ -d "$DIR/.git" ] && command -v git >/dev/null 2>&1; then
+        git -C "$DIR" fetch origin main 2>/dev/null || true
+        REMOTE_CHANGELOG=$(git -C "$DIR" show origin/main:CHANGELOG.md 2>/dev/null || true)
+        if [ -n "$REMOTE_CHANGELOG" ]; then
+            REMOTE_VER=$(echo "$REMOTE_CHANGELOG" | head -n 5 | grep -iE '^(version|VERSION)[[:space:]]*=' | head -n 1 | sed -E 's/^[vV][eE][rR][sS][iI][oO][nN][[:space:]]*=[[:space:]]*["'"'"']?([^"'"'"' ]+)["'"'"']?.*/\1/')
+        fi
+    fi
+
+    echo -e "  Versión instalada: ${CYAN}v${LOCAL_VER}${RESET}"
+
+    if [ -n "$REMOTE_VER" ]; then
+        echo -e "  Versión en GitHub: ${CYAN}v${REMOTE_VER}${RESET}"
+        if [ "$LOCAL_VER" = "$REMOTE_VER" ]; then
+            echo -e "\n  ${GREEN}✔ ¡Ya tienes la última versión instalada (v${LOCAL_VER})!${RESET}"
+            echo -e "  No hay nuevas actualizaciones disponibles."
+            read -rp "  ¿Deseas forzar la reinstalación de todos modos? [s/N]: " force_inst
+            force_inst=${force_inst:-N}
+            if [[ ! "$force_inst" =~ ^[sS]$ ]]; then
+                echo -e "  Operación finalizada."
+                exit 0
+            fi
+        elif [ "$(printf '%s\n%s\n' "$LOCAL_VER" "$REMOTE_VER" | sort -V | head -n1)" = "$LOCAL_VER" ]; then
+            echo -e "\n  ${GREEN}${BOLD}🚀 ¡Nueva versión disponible: v${REMOTE_VER}!${RESET} (Tu versión: v${LOCAL_VER})"
+        else
+            echo -e "\n  ${YELLOW}Tu versión actual (v${LOCAL_VER}) es más reciente o de desarrollo respecto a GitHub (v${REMOTE_VER}).${RESET}"
+        fi
+    else
+        echo -e "  ${YELLOW}! No se pudo comprobar la versión remota en GitHub (sin conexión). Procediendo con actualización local.${RESET}"
+    fi
+
+    echo -e "\n${BLUE}==> Aplicando actualización...${RESET}"
+
+    # 3. Sincronización con Git si aplica
     if [ -d "$DIR/.git" ] && command -v git >/dev/null 2>&1; then
-        echo -e "  ${BLUE}• Comprobando actualizaciones en GitHub...${RESET}"
+        echo -e "  ${BLUE}• Descargando últimos cambios de GitHub...${RESET}"
         if [ -n "$(git -C "$DIR" status --porcelain 2>/dev/null)" ]; then
             echo -e "  ${YELLOW}! Aviso: Se detectaron cambios locales modificados en el repositorio.${RESET}"
             read -rp "  ¿Deseas descartar cambios locales y actualizar con la versión oficial limpia de GitHub? [S/n]: " reset_git
@@ -94,7 +156,7 @@ if [ "$ACTION" = "update" ]; then
         fi
     fi
 
-    # 2. Actualizar archivos locales
+    # 4. Actualizar archivos locales
     echo -e "  ${BLUE}• Actualizando binarios y recursos locales...${RESET}"
     mkdir -p "$HOME/.local/bin"
     mkdir -p "$HOME/.local/share/aur-gui/sounds"
@@ -105,6 +167,10 @@ if [ "$ACTION" = "update" ]; then
     cp -f "$DIR/qml/Main.qml" "$HOME/.local/share/aur-gui/Main.qml"
     cp -f "$DIR/desktop/aur-installer-gui.desktop" "$HOME/.local/share/applications/aur-installer-gui.desktop"
 
+    if [ -f "$DIR/CHANGELOG.md" ]; then
+        cp -f "$DIR/CHANGELOG.md" "$HOME/.local/share/aur-gui/CHANGELOG.md"
+    fi
+
     if [ -d "$DIR/assets/sounds" ]; then
         cp -rf "$DIR/assets/sounds/"* "$HOME/.local/share/aur-gui/sounds/"
     fi
@@ -113,7 +179,9 @@ if [ "$ACTION" = "update" ]; then
         update-desktop-database "$HOME/.local/share/applications" 2>/dev/null || true
     fi
 
-    echo -e "\n${GREEN}${BOLD}✔ ¡AUR Installer GUI ha sido actualizado con éxito a la última versión!${RESET}"
+    UPDATED_VER=$(get_file_version "$HOME/.local/share/aur-gui/CHANGELOG.md")
+    UPDATED_VER="${UPDATED_VER:-$REMOTE_VER}"
+    echo -e "\n${GREEN}${BOLD}✔ ¡AUR Installer GUI ha sido actualizado con éxito a la versión v${UPDATED_VER:-1.1.0}!${RESET}"
     echo -e "  Tus configuraciones de atajos de teclado y sudoers se han conservado intactas."
     echo ""
     exit 0
@@ -193,6 +261,9 @@ install -m 755 "$DIR/bin/aur-search-gui" "$HOME/.local/bin/aur-search-gui"
 install -m 755 "$DIR/bin/aur-installer-run" "$HOME/.local/bin/aur-installer-run"
 cp -f "$DIR/qml/Main.qml" "$HOME/.local/share/aur-gui/Main.qml"
 cp -f "$DIR/desktop/aur-installer-gui.desktop" "$HOME/.local/share/applications/aur-installer-gui.desktop"
+if [ -f "$DIR/CHANGELOG.md" ]; then
+    cp -f "$DIR/CHANGELOG.md" "$HOME/.local/share/aur-gui/CHANGELOG.md"
+fi
 
 # Copiar assets de sonido incluidos en el repositorio
 if [ -d "$DIR/assets/sounds" ]; then
