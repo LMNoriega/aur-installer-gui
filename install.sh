@@ -174,10 +174,69 @@ if [[ "$set_key" =~ ^[sS]$ ]]; then
             fi
             ;;
         hyprland)
-            echo -e "  ${GREEN}Para Hyprland, añade la siguiente línea a tu configuración:${RESET}"
-            echo -e "  ${CYAN}hl.bind(\"$CHOSEN_KEY\", hl.dsp.exec_cmd(\"aur-search-gui\"))${RESET}"
-            echo -e "  o en sintaxis hyprland.conf:"
-            echo -e "  ${CYAN}bind = SUPER, I, exec, aur-search-gui${RESET}"
+            CONFIGURED=0
+            # 1. Omarchy / Modular Lua Hyprland setup
+            if [ -f "$HOME/.config/hypr/config/keybinds.lua" ] && [ -f "$HOME/.config/hypr/config/settings.lua" ]; then
+                if ! grep -q "aur-search-gui" "$HOME/.config/hypr/config/keybinds.lua" 2>/dev/null; then
+                    echo "hl.bind(\"$CHOSEN_KEY\", hl.dsp.exec_cmd(\"aur-search-gui\"))" >> "$HOME/.config/hypr/config/keybinds.lua"
+                fi
+                if ! grep -q "aur-installer-gui" "$HOME/.config/hypr/config/settings.lua" 2>/dev/null; then
+                    cat <<'HL' >> "$HOME/.config/hypr/config/settings.lua"
+
+-- AUR Installer window rules
+hl.window_rule({
+  name = "aur-installer-gui",
+  match = { class = "aur-installer-gui" },
+  float = true,
+  center = true,
+  size = { 740, 560 },
+})
+
+hl.window_rule({
+  name = "aur-installer-term",
+  match = { class = "aur-installer-term" },
+  float = true,
+  center = true,
+  size = { 900, 600 },
+})
+HL
+                fi
+                CONFIGURED=1
+            # 2. Archcraft / bindings.lua setup
+            elif [ -f "$HOME/.config/hypr/bindings.lua" ]; then
+                if ! grep -q "aur-search-gui" "$HOME/.config/hypr/bindings.lua" 2>/dev/null; then
+                    echo "hl.bind(\"$CHOSEN_KEY\", hl.dsp.exec_cmd(\"aur-search-gui\"))" >> "$HOME/.config/hypr/bindings.lua"
+                fi
+                CONFIGURED=1
+            # 3. Standard hyprland.conf setup
+            elif [ -f "$HOME/.config/hypr/hyprland.conf" ]; then
+                if ! grep -q "aur-search-gui" "$HOME/.config/hypr/hyprland.conf" 2>/dev/null; then
+                    cat <<HLC >> "$HOME/.config/hypr/hyprland.conf"
+
+# AUR Installer GUI
+bind = SUPER, I, exec, aur-search-gui
+windowrulev2 = float, class:^(aur-installer-gui)$
+windowrulev2 = center, class:^(aur-installer-gui)$
+windowrulev2 = size 740 560, class:^(aur-installer-gui)$
+windowrulev2 = float, class:^(aur-installer-term)$
+windowrulev2 = center, class:^(aur-installer-term)$
+windowrulev2 = size 900 600, class:^(aur-installer-term)$
+HLC
+                fi
+                CONFIGURED=1
+            fi
+
+            if [ $CONFIGURED -eq 1 ]; then
+                if command -v hyprctl >/dev/null 2>&1; then
+                    hyprctl reload >/dev/null 2>&1 || true
+                fi
+                echo -e "  ${GREEN}✔ Atajo y reglas de ventana flotante configuradas y recargadas en Hyprland.${RESET}"
+            else
+                echo -e "  ${GREEN}Para Hyprland, añade la siguiente línea a tu configuración:${RESET}"
+                echo -e "  ${CYAN}hl.bind(\"$CHOSEN_KEY\", hl.dsp.exec_cmd(\"aur-search-gui\"))${RESET}"
+                echo -e "  o en sintaxis hyprland.conf:"
+                echo -e "  ${CYAN}bind = SUPER, I, exec, aur-search-gui${RESET}"
+            fi
             ;;
         gnome)
             echo -e "  ${GREEN}En GNOME puedes asignarlo desde: Configuración > Teclado > Ver y personalizar atajos > Atajos personalizados.${RESET}"

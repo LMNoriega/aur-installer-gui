@@ -10,7 +10,7 @@ Window {
     visible: true
     title: "Instalador AUR"
     color: "transparent"
-    flags: Qt.FramelessWindowHint | Qt.Window
+    flags: Qt.FramelessWindowHint | Qt.Dialog
 
     // Paleta de colores de Serpantinum
     readonly property var theme: backend.theme
