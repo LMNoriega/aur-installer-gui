@@ -17,6 +17,108 @@ RESET="\033[0m"
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+ACTION="auto"
+for arg in "$@"; do
+    case "$arg" in
+        --update|-u)
+            ACTION="update"
+            ;;
+        --reinstall|--full)
+            ACTION="full"
+            ;;
+        --help|-h)
+            echo "Uso: ./install.sh [OPCIONES]"
+            echo ""
+            echo "Opciones:"
+            echo "  --update, -u         Actualizar a la última versión (rápido, conserva atajos y config)"
+            echo "  --reinstall, --full  Reinstalación y reconfiguración completa desde cero"
+            echo "  --help, -h           Mostrar esta ayuda"
+            exit 0
+            ;;
+    esac
+done
+
+# Detección de instalación previa si no se especificó un flag explícito
+if [ "$ACTION" = "auto" ] && [ -f "$HOME/.local/bin/aur-search-gui" ]; then
+    echo -e "${PURPLE}╭──────────────────────────────────────────────────────────╮${RESET}"
+    echo -e "${PURPLE}│${RESET}             ${BOLD}AUR-INSTALLER-GUI${RESET}                            ${PURPLE}│${RESET}"
+    echo -e "${PURPLE}╰──────────────────────────────────────────────────────────╯${RESET}"
+    echo ""
+    echo -e "${CYAN}==> Se detectó una instalación previa en ~/.local/bin/aur-search-gui${RESET}"
+    echo ""
+    echo -e "  ${BOLD}1)${RESET} ${GREEN}${BOLD}Actualizar a la última versión${RESET} (rápido: actualiza código, binarios y assets, conservando tus atajos)"
+    echo -e "  ${BOLD}2)${RESET} ${YELLOW}Reinstalar / Reconfigurar desde cero${RESET} (vuelve a configurar dependencias, sudoers y atajos)"
+    echo -e "  ${BOLD}3)${RESET} Salir"
+    echo ""
+    read -rp "  Selecciona una opción [1/2/3, por defecto: 1]: " opc
+    opc=${opc:-1}
+    case "$opc" in
+        1)
+            ACTION="update"
+            ;;
+        2)
+            ACTION="full"
+            ;;
+        *)
+            echo "Operación cancelada."
+            exit 0
+            ;;
+    esac
+fi
+
+# Modo actualización rápida
+if [ "$ACTION" = "update" ]; then
+    echo -e "${PURPLE}╭──────────────────────────────────────────────────────────╮${RESET}"
+    echo -e "${PURPLE}│${RESET}         ${BOLD}ACTUALIZADOR DE AUR-INSTALLER-GUI${RESET}                ${PURPLE}│${RESET}"
+    echo -e "${PURPLE}╰──────────────────────────────────────────────────────────╯${RESET}"
+    echo ""
+    echo -e "${BLUE}==> Actualizando AUR Installer GUI...${RESET}"
+
+    # 1. Sincronización con Git si aplica
+    if [ -d "$DIR/.git" ] && command -v git >/dev/null 2>&1; then
+        echo -e "  ${BLUE}• Comprobando actualizaciones en GitHub...${RESET}"
+        if [ -n "$(git -C "$DIR" status --porcelain 2>/dev/null)" ]; then
+            echo -e "  ${YELLOW}! Aviso: Se detectaron cambios locales modificados en el repositorio.${RESET}"
+            read -rp "  ¿Deseas descartar cambios locales y actualizar con la versión oficial limpia de GitHub? [S/n]: " reset_git
+            reset_git=${reset_git:-S}
+            if [[ "$reset_git" =~ ^[sS]$ ]]; then
+                git -C "$DIR" fetch origin 2>/dev/null || true
+                git -C "$DIR" reset --hard origin/main 2>/dev/null || true
+                echo -e "  ${GREEN}✔ Repositorio sincronizado con la versión oficial limpia de GitHub.${RESET}"
+            else
+                echo -e "  ${YELLOW}Conservando cambios locales del repositorio.${RESET}"
+            fi
+        else
+            git -C "$DIR" pull --rebase origin main 2>/dev/null || git -C "$DIR" pull origin main 2>/dev/null || true
+            echo -e "  ${GREEN}✔ Repositorio actualizado con la última versión de GitHub.${RESET}"
+        fi
+    fi
+
+    # 2. Actualizar archivos locales
+    echo -e "  ${BLUE}• Actualizando binarios y recursos locales...${RESET}"
+    mkdir -p "$HOME/.local/bin"
+    mkdir -p "$HOME/.local/share/aur-gui/sounds"
+    mkdir -p "$HOME/.local/share/applications"
+
+    install -m 755 "$DIR/bin/aur-search-gui" "$HOME/.local/bin/aur-search-gui"
+    install -m 755 "$DIR/bin/aur-installer-run" "$HOME/.local/bin/aur-installer-run"
+    cp -f "$DIR/qml/Main.qml" "$HOME/.local/share/aur-gui/Main.qml"
+    cp -f "$DIR/desktop/aur-installer-gui.desktop" "$HOME/.local/share/applications/aur-installer-gui.desktop"
+
+    if [ -d "$DIR/assets/sounds" ]; then
+        cp -rf "$DIR/assets/sounds/"* "$HOME/.local/share/aur-gui/sounds/"
+    fi
+
+    if command -v update-desktop-database >/dev/null 2>&1; then
+        update-desktop-database "$HOME/.local/share/applications" 2>/dev/null || true
+    fi
+
+    echo -e "\n${GREEN}${BOLD}✔ ¡AUR Installer GUI ha sido actualizado con éxito a la última versión!${RESET}"
+    echo -e "  Tus configuraciones de atajos de teclado y sudoers se han conservado intactas."
+    echo ""
+    exit 0
+fi
+
 echo -e "${PURPLE}╭──────────────────────────────────────────────────────────╮${RESET}"
 echo -e "${PURPLE}│${RESET}             ${BOLD}INSTALADOR DE AUR-INSTALLER-GUI${RESET}              ${PURPLE}│${RESET}"
 echo -e "${PURPLE}╰──────────────────────────────────────────────────────────╯${RESET}"
