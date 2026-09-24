@@ -1,33 +1,65 @@
 # 📦 AUR Installer GUI (Serpantinum Aesthetic)
 
-Un instalador y desinstalador de paquetes de **AUR (Arch User Repository)** y repositorios oficiales de Arch Linux con interfaz gráfica flotante en **QML / QtQuick**, animaciones fluidas y efectos de sonido nativos inspirados en la estética de **Serpantinum**.
+<p align="center">
+  <img src="assets/media/preview.jpg" alt="AUR Installer GUI - Vista Previa" width="100%">
+</p>
 
-Diseñado para ser **100% universal**: funciona directamente en cualquier distribución basada en Arch Linux (**Arch puro, CachyOS, EndeavourOS, Manjaro, Omarchy**) y con cualquier entorno de escritorio o gestor de ventanas (**KDE Plasma, GNOME, Hyprland, Sway, Niri, XFCE**).
+<p align="center">
+  <b>AUR Installer GUI</b>: un lanzador flotante minimalista para Arch Linux con estética Serpantinum, animaciones fluidas y búsqueda instantánea en AUR.
+  <br>
+  <i>Diseñado con Python y QML para ser 100% universal en Arch, CachyOS, EndeavourOS y Omarchy, con feedback táctil y efectos de sonido nativos. 📦✨</i>
+</p>
+
+<p align="center">
+  <a href="assets/media/demo.mp4">
+    <img src="https://img.shields.io/badge/▶_Ver_Video-Demostración_(MP4)-e9b5ef?style=for-the-badge&logoColor=110d11" alt="Ver Video de Demostración">
+  </a>
+  <a href="CHANGELOG.md">
+    <img src="https://img.shields.io/badge/Versión-v1.1.0-blue?style=for-the-badge" alt="Versión 1.1.0">
+  </a>
+  <a href="https://archlinux.org">
+    <img src="https://img.shields.io/badge/Arch_Linux-100%25_Compatible-1793d1?style=for-the-badge&logo=archlinux&logoColor=white" alt="Arch Linux">
+  </a>
+  <a href="https://qt.io">
+    <img src="https://img.shields.io/badge/Qt6-QML-41cd52?style=for-the-badge&logo=qt&logoColor=white" alt="Qt6">
+  </a>
+</p>
 
 ---
 
-## ✨ Características
+## 🎬 Demostración en Video
 
-- 🔍 **Búsqueda instantánea en AUR y Repositorios Oficiales**: Consulta en tiempo real mediante la API oficial v5 de AUR y la base de datos local de `pacman`.
-- 🗑️ **Pestaña de Desinstalación de Apps**: Lista y filtra todas las aplicaciones instaladas (`pacman -Qe`), dando máxima prioridad a las instaladas desde AUR y repositorios de usuario con su tamaño en disco.
-- 🎨 **Estética nativa Serpantinum / Frosted Glass**:
+[![Ver Video de Demostración](assets/media/preview.jpg)](assets/media/demo.mp4)
+
+> 🎥 **[Haz clic aquí para ver o reproducir el video de demostración (demo.mp4)](assets/media/demo.mp4)**:
+> Podrás apreciar la fluidez de la ventana flotante estilo spotlight, la animación elástica de caracteres (*bouncy pop-in*), la selección con morphing y los efectos de sonido táctiles sincronizados en tiempo real.
+
+---
+
+## ✨ Características Principales
+
+- 🔍 **Búsqueda Natural e Inteligente en AUR y Pacman**:
+  - Tolera búsquedas con espacios (`google chrome`), nombres con guiones (`google-chrome`) o palabras separadas.
+  - **Algoritmo de relevancia ponderada**: da prioridad máxima a coincidencias exactas, palabras clave y paquetes con alta popularidad/votos en la comunidad de AUR (Google Chrome, VS Code, Spotify), penalizando paquetes de idioma o depuración.
+- 🗑️ **Pestaña de Desinstalador de Aplicaciones**:
+  - Lista y filtra en tiempo real las aplicaciones instaladas explícitamente (`pacman -Qe`), destacando paquetes de AUR y repositorios de usuario junto a su tamaño en disco.
+- 🎨 **Estética Serpantinum / Frosted Glass**:
   - Ventana flotante centrada con esquinas redondeadas y fondo translúcido tipo vidrio esmerilado.
-  - Animación elástica de rebote (*bouncy pop-in*) para cada carácter que escribes.
-  - Cursor deslizante suave y animado.
-  - Barra de selección con efecto *morphing* detrás de cada elemento.
-- 🔊 **Efectos de sonido integrados y autónomos**:
-  - Sonidos incluidos directamente dentro del repositorio (sin necesidad de tener Serpantinum instalado).
-  - Sonido al escribir (`reusables/input/type.wav`).
-  - Sonido al alternar pestañas y navegar (`reusables/switch/sfx.wav`).
-  - Sonido de confirmación y clic (`reusables/clickbutton/click.wav`).
-  - Sonido de finalización y notificación (`notifications/Progress.wav`).
+  - Animación elástica de rebote (*bouncy pop-in*) para cada carácter tecleado.
+  - Cursor suave animado y barra de selección con efecto *morphing*.
+- 🔊 **Efectos de Sonido Táctiles Integrados**:
+  - Sonidos incluidos directamente dentro del repositorio (autónomos, sin requerir dependencias externas).
+  - Feedback sonoro al teclear (`type.wav`), alternar pestañas (`switch.wav`), hacer clic (`click.wav`) y finalizar instalaciones (`Progress.wav`).
   - Soporte automático para `pw-play` (PipeWire), `paplay` (PulseAudio) y `aplay` (ALSA).
-- 🖥️ **Soporte Universal de Terminales**:
-  - Detecta automáticamente el emulador de terminal del sistema: **Kitty, Alacritty, Ghostty, Konsole (KDE), Foot, GNOME Terminal, Ptyxis, XFCE Terminal, Wezterm, Xterm** o `$TERMINAL`.
-- ⚡ **Compatibilidad con `yay` y `paru`**:
-  - Detección automática del helper instalado en tu sistema.
-- 🛡️ **Seguridad por diseño**:
-  - Regla segura y opcional en `sudoers (NOPASSWD: /usr/bin/pacman)` para instalaciones automáticas sin pedir clave constantemente.
+- 🖥️ **Soporte Universal de Escritorios y Terminales**:
+  - Funciona de forma nativa en **KDE Plasma, GNOME, Hyprland, Sway, Niri y XFCE**.
+  - Respeta el estándar `xdg-terminal-exec` y detecta automáticamente emuladores como **Kitty, Alacritty, Ghostty, Konsole, Foot, GNOME Terminal, Ptyxis**, etc.
+- ⚡ **Helper AUR Automático**:
+  - Detecta y utiliza de forma transparente `yay` o `paru`.
+- 🛡️ **Seguridad y Comodidad (sudoers)**:
+  - Opción durante la instalación para configurar una regla segura en `sudoers (NOPASSWD: /usr/bin/pacman)` que agiliza las instalaciones sin pedir clave continuamente.
+- 🔄 **Actualizador Inteligente con Verificación de Versión**:
+  - Incluye `update.sh` que compara la versión instalada vs. la versión remota en GitHub mediante `CHANGELOG.md` y actualiza en segundos conservando todos tus atajos.
 
 ---
 
@@ -36,10 +68,10 @@ Diseñado para ser **100% universal**: funciona directamente en cualquier distri
 | Tecla / Acción | Descripción |
 | :--- | :--- |
 | **`Atajo asignado`** | Abre el menú flotante en el centro de la pantalla |
-| **`Tab`** | Alterna entre el modo **📦 Instalar** y **🗑️ Desinstalar** |
-| **Escribir** | Búsqueda o filtrado en tiempo real con sonidos y animación |
-| **`↓` / `↑`** | Navega por la lista de paquetes (con sonido de switch y selección deslizante) |
-| **`Enter`** (o clic) | Abre la terminal centrada y ejecuta la instalación o desinstalación |
+| **`Tab`** | Alterna suavemente entre el modo **📦 Instalar** y **🗑️ Desinstalar** |
+| **Escribir** | Búsqueda y filtrado en tiempo real con sonidos táctiles |
+| **`↓` / `↑`** | Navega por la lista con selección deslizante animada |
+| **`Enter`** (o clic) | Abre la terminal centrada e inicia la instalación o desinstalación |
 | **`Esc`** | Cierra la ventana inmediatamente |
 
 ---
@@ -52,29 +84,42 @@ cd aur-installer-gui
 ./install.sh
 ```
 
-El script de instalación:
-1. Detecta tu entorno de escritorio (**KDE Plasma, GNOME, Hyprland, Sway, Niri**, etc.).
-2. Comprueba dependencias y te permite instalarlas automáticamente.
-3. Copia binarios, interfaz QML y sonidos integrados a `~/.local/`.
-4. Te pregunta y configura el atajo de teclado adecuado para tu entorno (evitando colisiones en KDE Plasma).
+El script interactivo:
+1. Comprueba e instala dependencias faltantes (Python, PyQt6, helper AUR).
+2. Instala ejecutables, interfaz QML, assets y lanzador `.desktop`.
+3. Detecta tu entorno de escritorio (**KDE Plasma, GNOME, Hyprland**, etc.) y configura el atajo óptimo sin colisiones.
+
+---
+
+## 🔄 Actualización Automática
+
+Para actualizar a la última versión en cualquier momento:
+
+```bash
+./update.sh
+```
+
+El actualizador:
+- Compara tu versión local con la última versión de GitHub en [`CHANGELOG.md`](CHANGELOG.md).
+- Si hay una versión más nueva, sincroniza el repositorio y actualiza los binarios y recursos.
+- **Conserva intactos tus atajos de teclado y configuraciones existentes.**
 
 ---
 
 ## ⚙️ Configuración de Atajos por Entorno
 
 ### 🔵 KDE Plasma (CachyOS / Arch)
-> ⚠️ **Nota:** En KDE Plasma, `Super + I` abre las Preferencias del Sistema por defecto.
-> El instalador te sugerirá configurarlo como **`Meta + Shift + A`** o **`Meta + A`**.
-> También puedes configurarlo o cambiarlo manualmente en:
-> **Preferencias del Sistema > Accesos rápidos > Accesos rápidos personalizados > Instalador AUR**.
+> ⚠️ **Nota:** En KDE Plasma, `Super + I` abre las Preferencias del Sistema.
+> El instalador sugiere usar **`Meta + Shift + A`** o **`Meta + A`**.
+> Puedes gestionarlo en: **Preferencias del Sistema > Accesos rápidos > Accesos rápidos personalizados > Instalador AUR**.
 
 ### 🟠 Hyprland
-En tu archivo de atajos (`~/.config/hypr/bindings.lua` o `keybinds.lua`):
+En tus atajos (`~/.config/hypr/bindings.lua` o `keybinds.lua`):
 ```lua
 hl.bind("SUPER + I", hl.dsp.exec_cmd("aur-search-gui"))
 ```
 
-En tus reglas de ventana flotante (`~/.config/hypr/settings.lua` o `hyprland.conf`):
+En tus reglas de ventana (`~/.config/hypr/settings.lua` o `hyprland.conf`):
 ```lua
 hl.window_rule({
   name = "aur-installer-gui",
@@ -100,7 +145,7 @@ En **Configuración > Teclado > Ver y personalizar atajos > Atajos personalizado
 - **Atajo:** `<Super><Shift>A`
 
 ### 🟢 Sway / i3
-En tu archivo de configuración (`~/.config/sway/config`):
+En `~/.config/sway/config`:
 ```i3config
 bindsym $mod+Shift+a exec aur-search-gui
 ```
@@ -120,6 +165,10 @@ binds {
 ```
 aur-installer-gui/
 ├── assets/
+│   ├── media/               # Video de demostración, capturas y textos
+│   │   ├── demo.mp4         # Video de presentación en 1080p
+│   │   ├── preview.jpg      # Captura de pantalla en alta resolución
+│   │   └── share-copy.txt   # Texto descriptivo y promocional
 │   └── sounds/              # Efectos de sonido incluidos (independientes)
 ├── bin/
 │   ├── aur-search-gui       # Backend y frontend QtQuick/QML
@@ -130,7 +179,9 @@ aur-installer-gui/
 │   └── aur-installer-gui.desktop
 ├── sudoers/
 │   └── 10-aur-installer     # Regla NOPASSWD para pacman
-├── install.sh               # Instalador interactivo y universal
+├── CHANGELOG.md             # Control de versiones y novedades
+├── install.sh               # Instalador interactivo universal
+├── update.sh                # Actualizador rápido
 └── README.md
 ```
 

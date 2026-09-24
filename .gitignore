@@ -7,3 +7,5 @@ __pycache__/
 *.bak
 *.bak.*
 .credentials
+.agents/
+skills-lock.json

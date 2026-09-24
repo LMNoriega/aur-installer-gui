@@ -1,0 +1,3 @@
+AUR Installer GUI: un lanzador flotante minimalista para Arch Linux con estética Serpantinum, animaciones fluidas y búsqueda instantánea en AUR.
+
+Diseñado con Python y QML para ser 100% universal en Arch, CachyOS, EndeavourOS y Omarchy, con feedback táctil y efectos de sonido nativos. 📦✨
