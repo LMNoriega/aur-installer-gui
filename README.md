@@ -29,9 +29,8 @@
 
 ## 🎬 Demostración en Video
 
-[![Ver Video de Demostración](assets/media/preview.jpg)](assets/media/demo.mp4)
+<video src="https://github.com/user-attachments/assets/9313fb0e-e391-459b-a887-811f5ed8bc99" controls width="100%">    </video>
 
-> 🎥 **[Haz clic aquí para ver o reproducir el video de demostración (demo.mp4)](assets/media/demo.mp4)**:
 > Podrás apreciar la fluidez de la ventana flotante estilo spotlight, la animación elástica de caracteres (*bouncy pop-in*), la selección con morphing y los efectos de sonido táctiles sincronizados en tiempo real.
 
 ---
